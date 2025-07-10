@@ -1,23 +1,45 @@
+/* ------------------------------------------------------------------------ */
+/*  SAFE CROSS-ENV DATABASE INITIALISATION                                  */
+/* ------------------------------------------------------------------------ */
+
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
 import { pgTable, uuid, varchar, text, decimal, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core"
 import { eq, and, desc, asc, like } from "drizzle-orm"
 
-/**
- * Returns a Drizzle client on the server.
- * In the browser we return `undefined` and every DB method below will throw
- * a clear error if it’s (accidentally) used on the client.
- */
-function getServerDb() {
-  if (typeof window !== "undefined") return undefined as never
+/* ------------------------------------------------------------------------ */
+/*  LAZY, SERVER-ONLY DATABASE INITIALISATION                               */
+/* ------------------------------------------------------------------------ */
+
+let _db: ReturnType<typeof drizzle> | undefined
+
+function initDb() {
+  if (_db) return _db
+  if (typeof window !== "undefined") {
+    // Any attempt to touch the DB from the browser should blow up loudly.
+    throw new Error("Database services can only be used on the server.")
+  }
   const url = process.env.DATABASE_URL
   if (!url) {
-    throw new Error("DATABASE_URL is missing – add it in your Vercel /local env before starting the server.")
+    throw new Error("DATABASE_URL is missing – add it in your env before starting the server.")
   }
-  return drizzle(neon(url))
+  _db = drizzle(neon(url))
+  return _db
 }
 
-export const db = getServerDb()
+/**
+ * Proxy so existing calls like `db.select()` keep working
+ * while guaranteeing the real connection is created lazily
+ * on the very first server-side access.
+ *
+ * (Typing is widened to `any` here to avoid a large refactor.)
+ */
+export const db = new Proxy({} as any, {
+  get(_target, prop) {
+    const real = initDb() as any
+    return real[prop as keyof typeof real]
+  },
+}) as any
 
 // Schema definitions
 export const companies = pgTable("companies", {
@@ -229,13 +251,13 @@ export const partsService = {
   async getLowStock(companyId: string) {
     assertServer()
     const allParts = await this.getAll(companyId)
-    return allParts.filter((part) => part.quantity <= part.minQuantity && part.quantity > 0)
+    return allParts.filter((part: { quantity: number; minQuantity: number }) => part.quantity <= part.minQuantity && part.quantity > 0)
   },
 
   async getOutOfStock(companyId: string) {
     assertServer()
     const allParts = await this.getAll(companyId)
-    return allParts.filter((part) => part.quantity === 0)
+    return allParts.filter((part: { quantity: number }) => part.quantity === 0)
   },
 
   async create(data: NewPart) {

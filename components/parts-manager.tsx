@@ -39,13 +39,11 @@ import {
   AlertTriangle,
   Package,
 } from "lucide-react";
-import { partsService, configurationService, type Part } from "@/lib/database";
-import { useApp } from "@/components/providers";
+import type { Part } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 import { useLiveParts } from "@/hooks/use-live-data";
 
 export default function PartsManager() {
-  const { isReady, companyId } = useApp();
   const { toast } = useToast();
   const { parts, loading } = useLiveParts();
   const [filteredParts, setFilteredParts] = useState<Part[]>([]);
@@ -66,9 +64,8 @@ export default function PartsManager() {
 
   // Load categories
   useEffect(() => {
-    if (!companyId) return;
     loadCategories();
-  }, [companyId]);
+  }, []);
 
   // Filter parts whenever parts, search, or category changes
   useEffect(() => {
@@ -90,15 +87,13 @@ export default function PartsManager() {
   }, [parts, searchTerm, selectedCategory]);
 
   const loadCategories = async () => {
-    if (!companyId) return;
-
     try {
-      const configs = await configurationService.getByType(
-        companyId,
-        "part_categories"
-      );
-      if (configs.length > 0) {
-        setCategories(configs[0].configValue as string[]);
+      const response = await fetch("/api/configurations?type=part_categories");
+      if (response.ok) {
+        const configs = await response.json();
+        if (configs.length > 0) {
+          setCategories(configs[0].configValue as string[]);
+        }
       }
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -120,11 +115,9 @@ export default function PartsManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyId) return;
 
     try {
       const partData = {
-        companyId,
         partName: formData.partName,
         partCode: formData.partCode,
         category: formData.category,
@@ -136,13 +129,27 @@ export default function PartsManager() {
       };
 
       if (editingPart?.id) {
-        await partsService.update(editingPart.id, partData);
+        const response = await fetch(`/api/parts/${editingPart.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(partData),
+        });
+
+        if (!response.ok) throw new Error("Failed to update part");
+
         toast({
           title: "Success",
           description: "Part updated successfully",
         });
       } else {
-        await partsService.create(partData);
+        const response = await fetch("/api/parts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(partData),
+        });
+
+        if (!response.ok) throw new Error("Failed to create part");
+
         toast({
           title: "Success",
           description: "Part added successfully",
@@ -180,7 +187,12 @@ export default function PartsManager() {
 
     if (confirm(`Are you sure you want to delete ${part.partName}?`)) {
       try {
-        await partsService.softDelete(part.id);
+        const response = await fetch(`/api/parts/${part.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) throw new Error("Failed to delete part");
+
         toast({
           title: "Success",
           description: "Part deleted successfully",
@@ -204,7 +216,7 @@ export default function PartsManager() {
     return { status: "good", color: "default" as const };
   };
 
-  if (!isReady || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -299,7 +311,7 @@ export default function PartsManager() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="unitPrice" className="text-right">
-                    Price (Rs. )
+                    Price (₹)
                   </Label>
                   <Input
                     id="unitPrice"
@@ -427,7 +439,7 @@ export default function PartsManager() {
                       Price:
                     </span>
                     <span className="text-sm font-medium">
-                      Rs. {Number.parseFloat(part.unitPrice).toFixed(2)}
+                      ₹{Number.parseFloat(part.unitPrice).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">

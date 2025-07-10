@@ -8,7 +8,7 @@ import { Navigation } from "@/components/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Toyota Workshop Manager",
+  title: "Lotus Engineering",
   description:
     "Stock, billing, and quotation management for Toyota mechanical workshop",
 };

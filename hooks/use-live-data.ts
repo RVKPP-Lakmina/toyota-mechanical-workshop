@@ -1,25 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { type Part, type Customer, type Bill, partsService, customersService, billsService } from "@/lib/database"
-import { useApp } from "@/components/providers"
+import type { Part, Customer, Bill } from "@/lib/database"
 
 // Custom hook for reactive parts data
 export function useLiveParts() {
-  const { companyId } = useApp()
   const [parts, setParts] = useState<Part[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!companyId) return
-
     let mounted = true
 
     const loadParts = async () => {
       try {
-        const allParts = await partsService.getAll(companyId)
+        const response = await fetch("/api/parts")
+        if (!response.ok) throw new Error("Failed to fetch parts")
+        const data = await response.json()
+
         if (mounted) {
-          setParts(allParts)
+          setParts(data)
           setLoading(false)
         }
       } catch (error) {
@@ -33,33 +32,33 @@ export function useLiveParts() {
 
     loadParts()
 
-    // Poll for changes every 3 seconds when component is active
-    const interval = setInterval(loadParts, 3000)
+    // Poll for changes every 5 seconds when component is active
+    const interval = setInterval(loadParts, 5000)
 
     return () => {
       mounted = false
       clearInterval(interval)
     }
-  }, [companyId])
+  }, [])
 
   return { parts, loading, refresh: () => setLoading(true) }
 }
 
 export function useLiveCustomers() {
-  const { companyId } = useApp()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!companyId) return
-
     let mounted = true
 
     const loadCustomers = async () => {
       try {
-        const allCustomers = await customersService.getAll(companyId)
+        const response = await fetch("/api/customers")
+        if (!response.ok) throw new Error("Failed to fetch customers")
+        const data = await response.json()
+
         if (mounted) {
-          setCustomers(allCustomers)
+          setCustomers(data)
           setLoading(false)
         }
       } catch (error) {
@@ -73,33 +72,33 @@ export function useLiveCustomers() {
 
     loadCustomers()
 
-    // Poll for changes every 3 seconds when component is active
-    const interval = setInterval(loadCustomers, 3000)
+    // Poll for changes every 5 seconds when component is active
+    const interval = setInterval(loadCustomers, 5000)
 
     return () => {
       mounted = false
       clearInterval(interval)
     }
-  }, [companyId])
+  }, [])
 
   return { customers, loading, refresh: () => setLoading(true) }
 }
 
 export function useLiveBills() {
-  const { companyId } = useApp()
   const [bills, setBills] = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!companyId) return
-
     let mounted = true
 
     const loadBills = async () => {
       try {
-        const allBills = await billsService.getAll(companyId)
+        const response = await fetch("/api/bills")
+        if (!response.ok) throw new Error("Failed to fetch bills")
+        const data = await response.json()
+
         if (mounted) {
-          setBills(allBills)
+          setBills(data)
           setLoading(false)
         }
       } catch (error) {
@@ -113,39 +112,35 @@ export function useLiveBills() {
 
     loadBills()
 
-    // Poll for changes every 3 seconds when component is active
-    const interval = setInterval(loadBills, 3000)
+    // Poll for changes every 5 seconds when component is active
+    const interval = setInterval(loadBills, 5000)
 
     return () => {
       mounted = false
       clearInterval(interval)
     }
-  }, [companyId])
+  }, [])
 
   return { bills, loading, refresh: () => setLoading(true) }
 }
 
 export function useLiveStockAlerts() {
-  const { companyId } = useApp()
   const [lowStock, setLowStock] = useState<Part[]>([])
   const [outOfStock, setOutOfStock] = useState<Part[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!companyId) return
-
     let mounted = true
 
     const loadAlerts = async () => {
       try {
-        const [lowStockParts, outOfStockParts] = await Promise.all([
-          partsService.getLowStock(companyId),
-          partsService.getOutOfStock(companyId),
-        ])
+        const response = await fetch("/api/stock-alerts")
+        if (!response.ok) throw new Error("Failed to fetch stock alerts")
+        const data = await response.json()
 
         if (mounted) {
-          setLowStock(lowStockParts)
-          setOutOfStock(outOfStockParts)
+          setLowStock(data.lowStock || [])
+          setOutOfStock(data.outOfStock || [])
           setLoading(false)
         }
       } catch (error) {
@@ -160,14 +155,14 @@ export function useLiveStockAlerts() {
 
     loadAlerts()
 
-    // Poll for changes every 4 seconds for alerts
-    const interval = setInterval(loadAlerts, 4000)
+    // Poll for changes every 6 seconds for alerts
+    const interval = setInterval(loadAlerts, 6000)
 
     return () => {
       mounted = false
       clearInterval(interval)
     }
-  }, [companyId])
+  }, [])
 
   return { lowStock, outOfStock, loading }
 }
