@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -15,26 +21,39 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Edit, Trash2, AlertTriangle, Package } from "lucide-react"
-import { partsService, configurationService, type Part } from "@/lib/database"
-import { useApp } from "@/components/providers"
-import { useToast } from "@/hooks/use-toast"
-import { useLiveParts } from "@/hooks/use-live-data"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Package,
+} from "lucide-react";
+import { partsService, configurationService, type Part } from "@/lib/database";
+import { useApp } from "@/components/providers";
+import { useToast } from "@/hooks/use-toast";
+import { useLiveParts } from "@/hooks/use-live-data";
 
 export default function PartsManager() {
-  const { isReady, companyId } = useApp()
-  const { toast } = useToast()
-  const { parts, loading } = useLiveParts()
-  const [filteredParts, setFilteredParts] = useState<Part[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [editingPart, setEditingPart] = useState<Part | null>(null)
-  const [categories, setCategories] = useState<string[]>([])
+  const { isReady, companyId } = useApp();
+  const { toast } = useToast();
+  const { parts, loading } = useLiveParts();
+  const [filteredParts, setFilteredParts] = useState<Part[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingPart, setEditingPart] = useState<Part | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     partName: "",
     partCode: "",
@@ -43,45 +62,48 @@ export default function PartsManager() {
     quantity: "",
     minQuantity: "",
     notes: "",
-  })
+  });
 
   // Load categories
   useEffect(() => {
-    if (!companyId) return
-    loadCategories()
-  }, [companyId])
+    if (!companyId) return;
+    loadCategories();
+  }, [companyId]);
 
   // Filter parts whenever parts, search, or category changes
   useEffect(() => {
-    let filtered = parts
+    let filtered = parts;
 
     if (searchTerm) {
       filtered = filtered.filter(
         (part) =>
           part.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          part.partCode.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          part.partCode.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((part) => part.category === selectedCategory)
+      filtered = filtered.filter((part) => part.category === selectedCategory);
     }
 
-    setFilteredParts(filtered)
-  }, [parts, searchTerm, selectedCategory])
+    setFilteredParts(filtered);
+  }, [parts, searchTerm, selectedCategory]);
 
   const loadCategories = async () => {
-    if (!companyId) return
+    if (!companyId) return;
 
     try {
-      const configs = await configurationService.getByType(companyId, "part_categories")
+      const configs = await configurationService.getByType(
+        companyId,
+        "part_categories"
+      );
       if (configs.length > 0) {
-        setCategories(configs[0].configValue as string[])
+        setCategories(configs[0].configValue as string[]);
       }
     } catch (error) {
-      console.error("Error loading categories:", error)
+      console.error("Error loading categories:", error);
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -92,13 +114,13 @@ export default function PartsManager() {
       quantity: "",
       minQuantity: "",
       notes: "",
-    })
-    setEditingPart(null)
-  }
+    });
+    setEditingPart(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!companyId) return
+    e.preventDefault();
+    if (!companyId) return;
 
     try {
       const partData = {
@@ -111,35 +133,36 @@ export default function PartsManager() {
         minQuantity: Number.parseInt(formData.minQuantity),
         notes: formData.notes,
         isActive: true,
-      }
+      };
 
       if (editingPart?.id) {
-        await partsService.update(editingPart.id, partData)
+        await partsService.update(editingPart.id, partData);
         toast({
           title: "Success",
           description: "Part updated successfully",
-        })
+        });
       } else {
-        await partsService.create(partData)
+        await partsService.create(partData);
         toast({
           title: "Success",
           description: "Part added successfully",
-        })
+        });
       }
 
-      resetForm()
-      setIsAddDialogOpen(false)
+      resetForm();
+      setIsAddDialogOpen(false);
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save part",
+        description:
+          error instanceof Error ? error.message : "Failed to save part",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleEdit = (part: Part) => {
-    setEditingPart(part)
+    setEditingPart(part);
     setFormData({
       partName: part.partName,
       partCode: part.partCode,
@@ -148,35 +171,38 @@ export default function PartsManager() {
       quantity: part.quantity.toString(),
       minQuantity: part.minQuantity.toString(),
       notes: part.notes || "",
-    })
-    setIsAddDialogOpen(true)
-  }
+    });
+    setIsAddDialogOpen(true);
+  };
 
   const handleDelete = async (part: Part) => {
-    if (!part.id) return
+    if (!part.id) return;
 
     if (confirm(`Are you sure you want to delete ${part.partName}?`)) {
       try {
-        await partsService.softDelete(part.id)
+        await partsService.softDelete(part.id);
         toast({
           title: "Success",
           description: "Part deleted successfully",
-        })
+        });
       } catch (error) {
         toast({
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to delete part",
+          description:
+            error instanceof Error ? error.message : "Failed to delete part",
           variant: "destructive",
-        })
+        });
       }
     }
-  }
+  };
 
   const getStockStatus = (part: Part) => {
-    if (part.quantity === 0) return { status: "out", color: "destructive" as const }
-    if (part.quantity <= part.minQuantity) return { status: "low", color: "secondary" as const }
-    return { status: "good", color: "default" as const }
-  }
+    if (part.quantity === 0)
+      return { status: "out", color: "destructive" as const };
+    if (part.quantity <= part.minQuantity)
+      return { status: "low", color: "secondary" as const };
+    return { status: "good", color: "default" as const };
+  };
 
   if (!isReady || loading) {
     return (
@@ -186,15 +212,19 @@ export default function PartsManager() {
           <p>Loading parts...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Parts Management</h1>
-          <p className="text-muted-foreground">Manage your workshop inventory</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Parts Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your workshop inventory
+          </p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -206,9 +236,13 @@ export default function PartsManager() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingPart ? "Edit Part" : "Add New Part"}</DialogTitle>
+              <DialogTitle>
+                {editingPart ? "Edit Part" : "Add New Part"}
+              </DialogTitle>
               <DialogDescription>
-                {editingPart ? "Update part information" : "Add a new part to your inventory"}
+                {editingPart
+                  ? "Update part information"
+                  : "Add a new part to your inventory"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -220,7 +254,9 @@ export default function PartsManager() {
                   <Input
                     id="partName"
                     value={formData.partName}
-                    onChange={(e) => setFormData({ ...formData, partName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, partName: e.target.value })
+                    }
                     className="col-span-3"
                     required
                   />
@@ -232,7 +268,9 @@ export default function PartsManager() {
                   <Input
                     id="partCode"
                     value={formData.partCode}
-                    onChange={(e) => setFormData({ ...formData, partCode: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, partCode: e.target.value })
+                    }
                     className="col-span-3"
                     required
                   />
@@ -243,7 +281,9 @@ export default function PartsManager() {
                   </Label>
                   <Select
                     value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, category: value })
+                    }
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select category" />
@@ -259,14 +299,16 @@ export default function PartsManager() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="unitPrice" className="text-right">
-                    Price (₹)
+                    Price (Rs. )
                   </Label>
                   <Input
                     id="unitPrice"
                     type="number"
                     step="0.01"
                     value={formData.unitPrice}
-                    onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, unitPrice: e.target.value })
+                    }
                     className="col-span-3"
                     required
                   />
@@ -279,7 +321,9 @@ export default function PartsManager() {
                     id="quantity"
                     type="number"
                     value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, quantity: e.target.value })
+                    }
                     className="col-span-3"
                     required
                   />
@@ -292,7 +336,9 @@ export default function PartsManager() {
                     id="minQuantity"
                     type="number"
                     value={formData.minQuantity}
-                    onChange={(e) => setFormData({ ...formData, minQuantity: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, minQuantity: e.target.value })
+                    }
                     className="col-span-3"
                     required
                   />
@@ -304,13 +350,17 @@ export default function PartsManager() {
                   <Textarea
                     id="notes"
                     value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
                     className="col-span-3"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">{editingPart ? "Update Part" : "Add Part"}</Button>
+                <Button type="submit">
+                  {editingPart ? "Update Part" : "Add Part"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -346,7 +396,7 @@ export default function PartsManager() {
       {/* Parts Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredParts.map((part) => {
-          const stockStatus = getStockStatus(part)
+          const stockStatus = getStockStatus(part);
           return (
             <Card key={part.id}>
               <CardHeader className="pb-3">
@@ -359,23 +409,31 @@ export default function PartsManager() {
                     {stockStatus.status === "out"
                       ? "Out of Stock"
                       : stockStatus.status === "low"
-                        ? "Low Stock"
-                        : "In Stock"}
+                      ? "Low Stock"
+                      : "In Stock"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Category:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Category:
+                    </span>
                     <span className="text-sm">{part.category}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Price:</span>
-                    <span className="text-sm font-medium">₹{Number.parseFloat(part.unitPrice).toFixed(2)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Price:
+                    </span>
+                    <span className="text-sm font-medium">
+                      Rs. {Number.parseFloat(part.unitPrice).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Stock:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Stock:
+                    </span>
                     <span className="text-sm">
                       {part.quantity} / {part.minQuantity} min
                       {part.quantity <= part.minQuantity && (
@@ -383,21 +441,35 @@ export default function PartsManager() {
                       )}
                     </span>
                   </div>
-                  {part.notes && <div className="text-xs text-muted-foreground mt-2">{part.notes}</div>}
+                  {part.notes && (
+                    <div className="text-xs text-muted-foreground mt-2">
+                      {part.notes}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(part)} className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(part)}
+                    className="flex-1"
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(part)} className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(part)}
+                    className="flex-1"
+                  >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          )
+          );
         })}
       </div>
 
@@ -413,5 +485,5 @@ export default function PartsManager() {
         </div>
       )}
     </div>
-  )
+  );
 }

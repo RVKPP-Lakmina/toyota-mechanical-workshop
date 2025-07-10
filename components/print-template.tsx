@@ -1,15 +1,18 @@
-"use client"
+"use client";
 
-import React from "react"
-import type { Bill, Company } from "@/lib/database"
+import React from "react";
+import type { Bill, Company } from "@/lib/database";
 
 interface PrintTemplateProps {
-  bill: Bill
-  company: Company
+  bill: Bill;
+  company: Company;
 }
 
-export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps>(({ bill, company }, ref) => {
-  const items = Array.isArray(bill.items) ? bill.items : []
+export const PrintTemplate = React.forwardRef<
+  HTMLDivElement,
+  PrintTemplateProps
+>(({ bill, company }, ref) => {
+  const items = Array.isArray(bill.items) ? bill.items : [];
 
   return (
     <div ref={ref} className="p-8 bg-white text-black max-w-4xl mx-auto">
@@ -17,7 +20,11 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center gap-4">
           {company.logoUrl && (
-            <img src={company.logoUrl || "/placeholder.svg"} alt="Company Logo" className="h-16 w-16 object-contain" />
+            <img
+              src={company.logoUrl || "/placeholder.svg"}
+              alt="Company Logo"
+              className="h-16 w-16 object-contain"
+            />
           )}
           <div>
             <h1 className="text-2xl font-bold">{company.name}</h1>
@@ -27,9 +34,13 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
           </div>
         </div>
         <div className="text-right">
-          <h2 className="text-xl font-bold text-blue-600">{bill.type === "bill" ? "INVOICE" : "QUOTATION"}</h2>
+          <h2 className="text-xl font-bold text-blue-600">
+            {bill.type === "bill" ? "INVOICE" : "QUOTATION"}
+          </h2>
           <p className="text-sm">#{bill.billNumber}</p>
-          <p className="text-sm">Date: {new Date(bill.createdAt).toLocaleDateString()}</p>
+          <p className="text-sm">
+            Date: {new Date(bill.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
 
@@ -39,7 +50,9 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
         <div className="bg-gray-50 p-4 rounded">
           <p className="font-medium">{bill.customerName}</p>
           <p className="text-sm">Phone: {bill.customerPhone}</p>
-          {bill.customerAddress && <p className="text-sm">Address: {bill.customerAddress}</p>}
+          {bill.customerAddress && (
+            <p className="text-sm">Address: {bill.customerAddress}</p>
+          )}
         </div>
       </div>
 
@@ -50,7 +63,9 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left">Item</th>
               <th className="border border-gray-300 p-2 text-left">Code</th>
-              <th className="border border-gray-300 p-2 text-right">Unit Price</th>
+              <th className="border border-gray-300 p-2 text-right">
+                Unit Price
+              </th>
               <th className="border border-gray-300 p-2 text-right">Qty</th>
               <th className="border border-gray-300 p-2 text-right">Total</th>
             </tr>
@@ -61,10 +76,14 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
                 <td className="border border-gray-300 p-2">{item.partName}</td>
                 <td className="border border-gray-300 p-2">{item.partCode}</td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ₹{Number.parseFloat(item.unitPrice).toFixed(2)}
+                  Rs. {Number.parseFloat(item.unitPrice).toFixed(2)}
                 </td>
-                <td className="border border-gray-300 p-2 text-right">{item.quantity}</td>
-                <td className="border border-gray-300 p-2 text-right">₹{Number.parseFloat(item.total).toFixed(2)}</td>
+                <td className="border border-gray-300 p-2 text-right">
+                  {item.quantity}
+                </td>
+                <td className="border border-gray-300 p-2 text-right">
+                  Rs. {Number.parseFloat(item.total).toFixed(2)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -76,15 +95,15 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
         <div className="w-64">
           <div className="flex justify-between py-1">
             <span>Subtotal:</span>
-            <span>₹{Number.parseFloat(bill.subtotal).toFixed(2)}</span>
+            <span>Rs. {Number.parseFloat(bill.subtotal).toFixed(2)}</span>
           </div>
           <div className="flex justify-between py-1">
             <span>Tax ({Number.parseFloat(bill.taxRate)}%):</span>
-            <span>₹{Number.parseFloat(bill.taxAmount).toFixed(2)}</span>
+            <span>Rs. {Number.parseFloat(bill.taxAmount).toFixed(2)}</span>
           </div>
           <div className="flex justify-between py-2 border-t border-gray-300 font-bold text-lg">
             <span>Total:</span>
-            <span>₹{Number.parseFloat(bill.total).toFixed(2)}</span>
+            <span>Rs. {Number.parseFloat(bill.total).toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -105,7 +124,7 @@ export const PrintTemplate = React.forwardRef<HTMLDivElement, PrintTemplateProps
         </p>
       </div>
     </div>
-  )
-})
+  );
+});
 
-PrintTemplate.displayName = "PrintTemplate"
+PrintTemplate.displayName = "PrintTemplate";

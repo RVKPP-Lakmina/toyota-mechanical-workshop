@@ -1,115 +1,139 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Eye, Receipt, Printer, Share2 } from "lucide-react"
-import type { Bill } from "@/lib/database"
-import { useApp } from "@/components/providers"
-import { useToast } from "@/hooks/use-toast"
-import { useLiveBills } from "@/hooks/use-live-data"
-import { PrintTemplate } from "@/components/print-template"
-import { useReactToPrint } from "react-to-print"
-import Link from "next/link"
+import { useEffect, useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Search, Eye, Receipt, Printer, Share2 } from "lucide-react";
+import type { Bill } from "@/lib/database";
+import { useApp } from "@/components/providers";
+import { useToast } from "@/hooks/use-toast";
+import { useLiveBills } from "@/hooks/use-live-data";
+import { PrintTemplate } from "@/components/print-template";
+import { useReactToPrint } from "react-to-print";
+import Link from "next/link";
 
 export default function BillsManager() {
-  const { isReady, companyId, company } = useApp()
-  const { toast } = useToast()
-  const { bills: allBills, loading } = useLiveBills()
-  const [bills, setBills] = useState<Bill[]>([])
-  const [filteredBills, setFilteredBills] = useState<Bill[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-  const printRef = useRef<HTMLDivElement>(null)
+  const { isReady, companyId, company } = useApp();
+  const { toast } = useToast();
+  const { bills: allBills, loading } = useLiveBills();
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [filteredBills, setFilteredBills] = useState<Bill[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (allBills) {
-      const billsOnly = allBills.filter((bill) => bill.type === "bill")
-      setBills(billsOnly)
+      const billsOnly = allBills.filter((bill) => bill.type === "bill");
+      setBills(billsOnly);
     }
-  }, [allBills])
+  }, [allBills]);
 
   useEffect(() => {
-    filterBills()
-  }, [bills, searchTerm, statusFilter])
+    filterBills();
+  }, [bills, searchTerm, statusFilter]);
 
   const filterBills = () => {
-    let filtered = bills
+    let filtered = bills;
 
     if (searchTerm) {
       filtered = filtered.filter(
         (bill) =>
           bill.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bill.billNumber.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          bill.billNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((bill) => bill.status === statusFilter)
+      filtered = filtered.filter((bill) => bill.status === statusFilter);
     }
 
-    setFilteredBills(filtered)
-  }
+    setFilteredBills(filtered);
+  };
 
   const handleViewBill = (bill: Bill) => {
-    setSelectedBill(bill)
-    setIsViewDialogOpen(true)
-  }
+    setSelectedBill(bill);
+    setIsViewDialogOpen(true);
+  };
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: `Bill-${selectedBill?.billNumber}`,
-  })
+  });
 
   const handleShare = async (bill: Bill) => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: `Bill ${bill.billNumber}`,
-          text: `Bill for ${bill.customerName} - Total: ₹${Number.parseFloat(bill.total).toFixed(2)}`,
+          text: `Bill for ${bill.customerName} - Total: Rs. ${Number.parseFloat(
+            bill.total
+          ).toFixed(2)}`,
           url: window.location.href,
-        })
+        });
       } catch (error) {
-        console.log("Error sharing:", error)
+        console.log("Error sharing:", error);
       }
     } else {
       // Fallback: copy to clipboard
-      const shareText = `Bill ${bill.billNumber}\nCustomer: ${bill.customerName}\nTotal: ₹${Number.parseFloat(bill.total).toFixed(2)}\nDate: ${new Date(bill.createdAt).toLocaleDateString()}`
+      const shareText = `Bill ${bill.billNumber}\nCustomer: ${
+        bill.customerName
+      }\nTotal: Rs. ${Number.parseFloat(bill.total).toFixed(
+        2
+      )}\nDate: ${new Date(bill.createdAt).toLocaleDateString()}`;
 
       try {
-        await navigator.clipboard.writeText(shareText)
+        await navigator.clipboard.writeText(shareText);
         toast({
           title: "Copied to clipboard",
           description: "Bill details copied to clipboard",
-        })
+        });
       } catch (error) {
         toast({
           title: "Error",
           description: "Failed to copy bill details",
           variant: "destructive",
-        })
+        });
       }
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "default"
+        return "default";
       case "draft":
-        return "secondary"
+        return "secondary";
       case "cancelled":
-        return "destructive"
+        return "destructive";
       default:
-        return "secondary"
+        return "secondary";
     }
-  }
+  };
 
   if (!isReady || loading) {
     return (
@@ -119,15 +143,19 @@ export default function BillsManager() {
           <p>Loading bills...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bills Management</h1>
-          <p className="text-muted-foreground">Manage customer bills and invoices</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Bills Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage customer bills and invoices
+          </p>
         </div>
 
         <Link href="/bills/new">
@@ -169,29 +197,46 @@ export default function BillsManager() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">Bill #{bill.billNumber}</CardTitle>
+                  <CardTitle className="text-lg">
+                    Bill #{bill.billNumber}
+                  </CardTitle>
                   <CardDescription>
-                    {bill.customerName} • {new Date(bill.createdAt).toLocaleDateString()}
+                    {bill.customerName} •{" "}
+                    {new Date(bill.createdAt).toLocaleDateString()}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={getStatusColor(bill.status)}>{bill.status}</Badge>
-                  <span className="text-lg font-bold">₹{Number.parseFloat(bill.total).toFixed(2)}</span>
+                  <Badge variant={getStatusColor(bill.status)}>
+                    {bill.status}
+                  </Badge>
+                  <span className="text-lg font-bold">
+                    Rs. {Number.parseFloat(bill.total).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {Array.isArray(bill.items) ? bill.items.length : 0} item(s) • Subtotal: ₹
-                  {Number.parseFloat(bill.subtotal).toFixed(2)} • Tax: ₹{Number.parseFloat(bill.taxAmount).toFixed(2)}
+                  {Array.isArray(bill.items) ? bill.items.length : 0} item(s) •
+                  Subtotal: Rs.
+                  {Number.parseFloat(bill.subtotal).toFixed(2)} • Tax: Rs.{" "}
+                  {Number.parseFloat(bill.taxAmount).toFixed(2)}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewBill(bill)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewBill(bill)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleShare(bill)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleShare(bill)}
+                  >
                     <Share2 className="h-3 w-3 mr-1" />
                     Share
                   </Button>
@@ -221,14 +266,20 @@ export default function BillsManager() {
             <div className="flex justify-between items-center">
               <div>
                 <DialogTitle>Bill #{selectedBill?.billNumber}</DialogTitle>
-                <DialogDescription>Bill details for {selectedBill?.customerName}</DialogDescription>
+                <DialogDescription>
+                  Bill details for {selectedBill?.customerName}
+                </DialogDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handlePrint}>
                   <Printer className="h-4 w-4 mr-2" />
                   Print
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => selectedBill && handleShare(selectedBill)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectedBill && handleShare(selectedBill)}
+                >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </Button>
@@ -236,9 +287,15 @@ export default function BillsManager() {
             </div>
           </DialogHeader>
 
-          {selectedBill && company && <PrintTemplate ref={printRef} bill={selectedBill} company={company} />}
+          {selectedBill && company && (
+            <PrintTemplate
+              ref={printRef}
+              bill={selectedBill}
+              company={company}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

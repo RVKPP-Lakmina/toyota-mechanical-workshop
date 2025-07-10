@@ -1,18 +1,35 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, Package, Users, FileText, TrendingDown } from "lucide-react"
-import { useApp } from "@/components/providers"
-import { useLiveCustomers, useLiveBills, useLiveStockAlerts, useLiveParts } from "@/hooks/use-live-data"
-import Link from "next/link"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertTriangle,
+  Package,
+  Users,
+  FileText,
+  TrendingDown,
+} from "lucide-react";
+import { useApp } from "@/components/providers";
+import {
+  useLiveCustomers,
+  useLiveBills,
+  useLiveStockAlerts,
+  useLiveParts,
+} from "@/hooks/use-live-data";
+import Link from "next/link";
 
 export default function Dashboard() {
-  const { isReady, company } = useApp()
-  const { parts } = useLiveParts()
-  const { customers } = useLiveCustomers()
-  const { bills } = useLiveBills()
-  const { lowStock, outOfStock } = useLiveStockAlerts()
+  const { isReady, company } = useApp();
+  const { parts } = useLiveParts();
+  const { customers } = useLiveCustomers();
+  const { bills } = useLiveBills();
+  const { lowStock, outOfStock } = useLiveStockAlerts();
 
   if (!isReady) {
     return (
@@ -22,18 +39,20 @@ export default function Dashboard() {
           <p>Loading dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const recentBills = bills.filter((b) => b.type === "bill").length
-  const recentQuotations = bills.filter((b) => b.type === "quotation").length
-  const recentActivity = bills.slice(0, 5)
+  const recentBills = bills.filter((b) => b.type === "bill").length;
+  const recentQuotations = bills.filter((b) => b.type === "quotation").length;
+  const recentActivity = bills.slice(0, 5);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to {company?.name || "Workshop Manager"}</p>
+        <p className="text-muted-foreground">
+          Welcome to {company?.name || "Workshop Manager"}
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -45,7 +64,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{parts.length}</div>
-            <p className="text-xs text-muted-foreground">Active parts in inventory</p>
+            <p className="text-xs text-muted-foreground">
+              Active parts in inventory
+            </p>
           </CardContent>
         </Card>
 
@@ -55,8 +76,12 @@ export default function Dashboard() {
             <TrendingDown className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-500">{lowStock.length}</div>
-            <p className="text-xs text-muted-foreground">Parts below minimum quantity</p>
+            <div className="text-2xl font-bold text-orange-500">
+              {lowStock.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Parts below minimum quantity
+            </p>
           </CardContent>
         </Card>
 
@@ -66,8 +91,12 @@ export default function Dashboard() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">{outOfStock.length}</div>
-            <p className="text-xs text-muted-foreground">Parts with zero quantity</p>
+            <div className="text-2xl font-bold text-red-500">
+              {outOfStock.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Parts with zero quantity
+            </p>
           </CardContent>
         </Card>
 
@@ -78,7 +107,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
-            <p className="text-xs text-muted-foreground">Total registered customers</p>
+            <p className="text-xs text-muted-foreground">
+              Total registered customers
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -95,23 +126,37 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {lowStock.length === 0 && outOfStock.length === 0 ? (
-              <p className="text-sm text-muted-foreground">All parts are well stocked!</p>
+              <p className="text-sm text-muted-foreground">
+                All parts are well stocked!
+              </p>
             ) : (
               <div className="space-y-3">
                 {[...outOfStock, ...lowStock].slice(0, 5).map((part) => (
-                  <div key={part.id} className="flex items-center justify-between">
+                  <div
+                    key={part.id}
+                    className="flex items-center justify-between"
+                  >
                     <div>
                       <p className="font-medium">{part.partName}</p>
-                      <p className="text-sm text-muted-foreground">{part.partCode}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {part.partCode}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={part.quantity === 0 ? "destructive" : "secondary"}>
+                      <Badge
+                        variant={
+                          part.quantity === 0 ? "destructive" : "secondary"
+                        }
+                      >
                         {part.quantity} / {part.minQuantity}
                       </Badge>
                     </div>
                   </div>
                 ))}
-                <Link href="/parts" className="text-sm text-primary hover:underline block mt-2">
+                <Link
+                  href="/parts"
+                  className="text-sm text-primary hover:underline block mt-2"
+                >
                   View all parts →
                 </Link>
               </div>
@@ -130,28 +175,46 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No recent activity</p>
+              <p className="text-sm text-muted-foreground">
+                No recent activity
+              </p>
             ) : (
               <div className="space-y-3">
                 {recentActivity.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between">
+                  <div
+                    key={bill.id}
+                    className="flex items-center justify-between"
+                  >
                     <div>
                       <p className="font-medium">{bill.customerName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {bill.type === "bill" ? "Bill" : "Quotation"} • {new Date(bill.createdAt).toLocaleDateString()}
+                        {bill.type === "bill" ? "Bill" : "Quotation"} •{" "}
+                        {new Date(bill.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{Number.parseFloat(bill.total).toFixed(2)}</p>
-                      <Badge variant={bill.type === "bill" ? "default" : "secondary"}>{bill.status}</Badge>
+                      <p className="font-medium">
+                        Rs. {Number.parseFloat(bill.total).toFixed(2)}
+                      </p>
+                      <Badge
+                        variant={bill.type === "bill" ? "default" : "secondary"}
+                      >
+                        {bill.status}
+                      </Badge>
                     </div>
                   </div>
                 ))}
                 <div className="flex gap-2 mt-2">
-                  <Link href="/bills" className="text-sm text-primary hover:underline">
+                  <Link
+                    href="/bills"
+                    className="text-sm text-primary hover:underline"
+                  >
                     View bills →
                   </Link>
-                  <Link href="/quotations" className="text-sm text-primary hover:underline">
+                  <Link
+                    href="/quotations"
+                    className="text-sm text-primary hover:underline"
+                  >
                     View quotations →
                   </Link>
                 </div>
@@ -161,5 +224,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
